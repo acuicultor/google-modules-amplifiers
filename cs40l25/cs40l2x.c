@@ -37,6 +37,11 @@
 #include <linux/leds.h>
 #endif /* CONFIG_ANDROID_TIMED_OUTPUT */
 
+#ifdef CONFIG_UCI
+#include <linux/uci/uci.h>
+struct cs40l2x_private *g_cs40l2x = NULL;
+#endif
+
 static const char * const cs40l2x_supplies[] = {
 	"VA",
 	"VP",
@@ -1174,7 +1179,6 @@ static ssize_t cs40l2x_cp_trigger_index_show(struct device *dev,
 	if (cs40l2x->cp_trigger_index == cs40l2x->virtual_slot_index)
 		index = cs40l2x->loaded_virtual_index;
 	mutex_unlock(&cs40l2x->lock);
-
 	return snprintf(buf, PAGE_SIZE, "%d\n", index);
 }
 
@@ -1377,6 +1381,9 @@ static ssize_t cs40l2x_cp_trigger_index_store(struct device *dev,
 	mutex_lock(&cs40l2x->lock);
 
 	ret = cs40l2x_cp_trigger_index_impl(cs40l2x, index);
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,index);
+#endif
 
 	mutex_unlock(&cs40l2x->lock);
 	pm_runtime_mark_last_busy(cs40l2x->dev);
@@ -1538,6 +1545,10 @@ static ssize_t cs40l2x_cp_trigger_queue_store(struct device *dev,
 	section = comp->sections;
 
 	cur = pbq_str;
+
+#ifdef CONFIG_UCI
+	pr_info("%s %s\n",__func__,cur);
+#endif
 
 	while ((token = strsep(&cur, ","))) {
 		token = strim(token);
@@ -1986,6 +1997,10 @@ static ssize_t cs40l2x_pwle_store(struct device *dev,
 		goto err_exit;
 
 	cur = pwle_str;
+
+#ifdef CONFIG_UCI
+	pr_info("%s %s\n",__func__,cur);
+#endif
 
 	while ((token = strsep(&cur, ","))) {
 		token = strim(token);
@@ -2734,6 +2749,10 @@ static ssize_t cs40l2x_hiber_cmd_store(struct device *dev,
 	if (ret)
 		return -EINVAL;
 
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,hiber_cmd);
+#endif
+
 	pm_runtime_get_sync(cs40l2x->dev);
 	mutex_lock(&cs40l2x->lock);
 
@@ -2799,6 +2818,10 @@ static ssize_t cs40l2x_hiber_timeout_store(struct device *dev,
 	ret = kstrtou32(buf, 10, &val);
 	if (ret)
 		return -EINVAL;
+
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,val);
+#endif
 
 	if (val < CS40L2X_FALSEI2CTIMEOUT_MIN)
 		return -EINVAL;
@@ -2876,6 +2899,10 @@ static ssize_t cs40l2x_gpio1_enable_store(struct device *dev,
 	ret = kstrtou32(buf, 10, &val);
 	if (ret)
 		return -EINVAL;
+
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,val);
+#endif
 
 	pm_runtime_get_sync(cs40l2x->dev);
 	mutex_lock(&cs40l2x->lock);
@@ -3564,6 +3591,9 @@ static ssize_t cs40l2x_standby_timeout_store(struct device *dev,
 	ret = kstrtou32(buf, 10, &val);
 	if (ret)
 		return -EINVAL;
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,val);
+#endif
 
 	if (val > CS40L2X_EVENT_TIMEOUT_MAX)
 		return -EINVAL;
@@ -3664,6 +3694,9 @@ static ssize_t cs40l2x_f0_stored_store(struct device *dev,
 	ret = kstrtou32(buf, 10, &val);
 	if (ret)
 		return -EINVAL;
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,val);
+#endif
 
 	if (cs40l2x->pdata.f0_min > 0 && val < cs40l2x->pdata.f0_min)
 		return -EINVAL;
@@ -3773,6 +3806,9 @@ static ssize_t cs40l2x_bemf_rec_en_store(struct device *dev,
 	ret = kstrtou32(buf, 10, &val);
 	if (ret || val > 1)
 		return -EINVAL;
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,val);
+#endif
 
 	pm_runtime_get_sync(dev);
 	mutex_lock(&cs40l2x->lock);
@@ -3845,6 +3881,9 @@ static ssize_t cs40l2x_bemf_shift_store(struct device *dev,
 	if (ret)
 		return -EINVAL;
 
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,val);
+#endif
 	pm_runtime_get_sync(cs40l2x->dev);
 	mutex_lock(&cs40l2x->lock);
 
@@ -3952,6 +3991,9 @@ static ssize_t cs40l2x_dyn_f0_index_store(struct device *dev,
 	if (ret)
 		return -EINVAL;
 
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,val);
+#endif
 	if (val < 0 || val > CS40l2X_F0_MAX_ENTRIES - 1) {
 		dev_err(dev, "Invalid index value %d\n", val);
 		return -EINVAL;
@@ -3976,6 +4018,9 @@ static ssize_t cs40l2x_dyn_f0_val_store(struct device *dev,
 	int ret, i, loc = -1, index;
 
 	ret = kstrtou32(buf, 10, &val);
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,val);
+#endif
 	if (ret)
 		return -EINVAL;
 
@@ -4106,6 +4151,9 @@ static ssize_t cs40l2x_f0_offset_store(struct device *dev,
 	unsigned int reg, val;
 
 	ret = kstrtou32(buf, 10, &val);
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,val);
+#endif
 	if (ret)
 		return -EINVAL;
 
@@ -4206,6 +4254,9 @@ static ssize_t cs40l2x_redc_stored_store(struct device *dev,
 	unsigned int reg, val;
 
 	ret = kstrtou32(buf, 10, &val);
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,val);
+#endif
 	if (ret)
 		return -EINVAL;
 
@@ -4311,6 +4362,9 @@ static ssize_t cs40l2x_q_stored_store(struct device *dev,
 	unsigned int reg, val;
 
 	ret = kstrtou32(buf, 10, &val);
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,val);
+#endif
 	if (ret)
 		return -EINVAL;
 
@@ -4383,6 +4437,9 @@ static ssize_t cs40l2x_comp_enable_store(struct device *dev,
 	unsigned int val;
 
 	ret = kstrtou32(buf, 10, &val);
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,val);
+#endif
 	if (ret)
 		return -EINVAL;
 
@@ -4466,6 +4523,9 @@ static ssize_t cs40l2x_redc_comp_enable_store(struct device *dev,
 	unsigned int val;
 
 	ret = kstrtou32(buf, 10, &val);
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,val);
+#endif
 	if (ret)
 		return -EINVAL;
 
@@ -4583,6 +4643,9 @@ static ssize_t cs40l2x_dig_scale_store(struct device *dev,
 	unsigned int dig_scale;
 
 	ret = kstrtou32(buf, 10, &dig_scale);
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,dig_scale);
+#endif
 	if (ret)
 		return -EINVAL;
 
@@ -4692,6 +4755,9 @@ static ssize_t cs40l2x_gpio1_dig_scale_store(struct device *dev,
 	unsigned int dig_scale;
 
 	ret = kstrtou32(buf, 10, &dig_scale);
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,dig_scale);
+#endif
 	if (ret)
 		return -EINVAL;
 
@@ -4843,6 +4909,9 @@ static ssize_t cs40l2x_gpio1_rise_dig_scale_store(struct device *dev,
 	unsigned int dig_scale;
 
 	ret = kstrtou32(buf, 10, &dig_scale);
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,dig_scale);
+#endif
 	if (ret)
 		return -EINVAL;
 
@@ -4878,6 +4947,9 @@ static ssize_t cs40l2x_gpio1_fall_dig_scale_store(struct device *dev,
 	unsigned int dig_scale;
 
 	ret = kstrtou32(buf, 10, &dig_scale);
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,dig_scale);
+#endif
 	if (ret)
 		return -EINVAL;
 
@@ -4913,6 +4985,9 @@ static ssize_t cs40l2x_gpio2_rise_dig_scale_store(struct device *dev,
 	unsigned int dig_scale;
 
 	ret = kstrtou32(buf, 10, &dig_scale);
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,dig_scale);
+#endif
 	if (ret)
 		return -EINVAL;
 
@@ -4948,6 +5023,9 @@ static ssize_t cs40l2x_gpio2_fall_dig_scale_store(struct device *dev,
 	unsigned int dig_scale;
 
 	ret = kstrtou32(buf, 10, &dig_scale);
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,dig_scale);
+#endif
 	if (ret)
 		return -EINVAL;
 
@@ -4983,6 +5061,9 @@ static ssize_t cs40l2x_gpio3_rise_dig_scale_store(struct device *dev,
 	unsigned int dig_scale;
 
 	ret = kstrtou32(buf, 10, &dig_scale);
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,dig_scale);
+#endif
 	if (ret)
 		return -EINVAL;
 
@@ -5018,6 +5099,9 @@ static ssize_t cs40l2x_gpio3_fall_dig_scale_store(struct device *dev,
 	unsigned int dig_scale;
 
 	ret = kstrtou32(buf, 10, &dig_scale);
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,dig_scale);
+#endif
 	if (ret)
 		return -EINVAL;
 
@@ -5053,6 +5137,9 @@ static ssize_t cs40l2x_gpio4_rise_dig_scale_store(struct device *dev,
 	unsigned int dig_scale;
 
 	ret = kstrtou32(buf, 10, &dig_scale);
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,dig_scale);
+#endif
 	if (ret)
 		return -EINVAL;
 
@@ -5088,6 +5175,9 @@ static ssize_t cs40l2x_gpio4_fall_dig_scale_store(struct device *dev,
 	unsigned int dig_scale;
 
 	ret = kstrtou32(buf, 10, &dig_scale);
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,dig_scale);
+#endif
 	if (ret)
 		return -EINVAL;
 
@@ -5182,6 +5272,9 @@ static ssize_t cs40l2x_cp_dig_scale_store(struct device *dev,
 	unsigned int dig_scale;
 
 	ret = kstrtou32(buf, 10, &dig_scale);
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,dig_scale);
+#endif
 	if (ret)
 		return -EINVAL;
 
@@ -5448,6 +5541,9 @@ static ssize_t cs40l2x_vbatt_max_store(struct device *dev,
 	unsigned int reg, val;
 
 	ret = kstrtou32(buf, 10, &val);
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,val);
+#endif
 	if (ret)
 		return -EINVAL;
 
@@ -5523,6 +5619,9 @@ static ssize_t cs40l2x_vbatt_min_store(struct device *dev,
 	unsigned int reg, val;
 
 	ret = kstrtou32(buf, 10, &val);
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,val);
+#endif
 	if (ret)
 		return -EINVAL;
 
@@ -5593,6 +5692,9 @@ static ssize_t cs40l2x_exc_enable_store(struct device *dev,
 	unsigned int reg, val;
 
 	ret = kstrtou32(buf, 10, &val);
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,val);
+#endif
 	if (ret)
 		return -EINVAL;
 
@@ -5663,6 +5765,9 @@ static ssize_t cs40l2x_hw_err_count_store(struct device *dev,
 	unsigned int val;
 
 	ret = kstrtou32(buf, 10, &val);
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,val);
+#endif
 	if (ret)
 		return -EINVAL;
 
@@ -5718,6 +5823,9 @@ static ssize_t cs40l2x_hw_reset_store(struct device *dev,
 	unsigned int val, fw_id_restore;
 
 	ret = kstrtou32(buf, 10, &val);
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,val);
+#endif
 	if (ret)
 		return -EINVAL;
 
@@ -5806,6 +5914,9 @@ static ssize_t cs40l2x_wt_file_store(struct device *dev,
 
 	if (!len)
 		return -EINVAL;
+#ifdef CONFIG_UCI
+	pr_info("%s\n",__func__);
+#endif
 
 	if (buf[len - 1] == '\n')
 		len--;
@@ -5938,6 +6049,9 @@ static ssize_t cs40l2x_imon_offs_enable_store(struct device *dev,
 	unsigned int reg, val;
 
 	ret = kstrtou32(buf, 10, &val);
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,val);
+#endif
 	if (ret)
 		return -EINVAL;
 
@@ -6013,6 +6127,9 @@ static ssize_t cs40l2x_clab_enable_store(struct device *dev,
 	unsigned int reg, val;
 
 	ret = kstrtou32(buf, 10, &val);
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,val);
+#endif
 	if (ret)
 		return -EINVAL;
 
@@ -6090,6 +6207,9 @@ static ssize_t cs40l2x_clab_peak_store(struct device *dev,
 	unsigned int reg, val;
 
 	ret = kstrtou32(buf, 10, &val);
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,val);
+#endif
 	if (ret)
 		return -EINVAL;
 
@@ -6164,6 +6284,9 @@ static ssize_t cs40l2x_par_enable_store(struct device *dev,
 	unsigned int reg, val;
 
 	ret = kstrtou32(buf, 10, &val);
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,val);
+#endif
 	if (ret)
 		return -EINVAL;
 
@@ -6237,6 +6360,9 @@ static ssize_t cs40l2x_par_gain_comp_store(struct device *dev,
 	unsigned int reg, val;
 
 	ret = kstrtou32(buf, 10, &val);
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,val);
+#endif
 	if (ret)
 		return -EINVAL;
 
@@ -6307,6 +6433,9 @@ static ssize_t cs40l2x_gpio_event_store(struct device *dev,
 	unsigned int val;
 
 	ret = kstrtou32(buf, 10, &val);
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,val);
+#endif
 	if (ret || val != 0)
 		return -EINVAL;
 
@@ -6372,6 +6501,9 @@ static ssize_t cs40l2x_max_back_emf_store(struct device *dev,
 	unsigned int reg, val;
 
 	ret = kstrtou32(buf, 10, &val);
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,val);
+#endif
 	if (ret)
 		return -EINVAL;
 
@@ -6423,6 +6555,9 @@ static ssize_t cs40l2x_autosuspend_delay_store(struct device *dev,
 	unsigned int val;
 
 	ret = kstrtou32(buf, 10, &val);
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,val);
+#endif
 	if (ret)
 		return -EINVAL;
 
@@ -6454,6 +6589,9 @@ static ssize_t cs40l2x_boost_ipk_store(struct device *dev,
 	unsigned int bst_ipk_scaled;
 
 	ret = kstrtou32(buf, 10, &boost_ipk);
+#ifdef CONFIG_UCI
+	pr_info("%s %d\n",__func__,boost_ipk);
+#endif
 	if (ret)
 		return -EINVAL;
 
@@ -8247,6 +8385,9 @@ static int cs40l2x_create_timed_output(struct cs40l2x_private *cs40l2x)
 	return 0;
 }
 #else
+#ifdef CONFIG_UCI
+struct led_classdev *g_led_cdev = NULL;
+#endif
 /* vibration callback for LED device */
 static void cs40l2x_vibe_brightness_set(struct led_classdev *led_cdev,
 		enum led_brightness brightness)
@@ -8286,9 +8427,87 @@ static int cs40l2x_create_led(struct cs40l2x_private *cs40l2x)
 		dev_err(dev, "Failed to create sysfs group: %d\n", ret);
 		return ret;
 	}
-
+#ifdef CONFIG_UCI
+	g_led_cdev = led_dev;
+#endif
 	return 0;
 }
+
+#ifdef CONFIG_UCI
+static int set_scale(int scale) {
+	struct cs40l2x_private *cs40l2x = g_cs40l2x;
+	int ret = 0;
+	unsigned int dig_scale = scale;
+
+	pr_info("%s %d\n",__func__,dig_scale);
+
+	if (dig_scale > CS40L2X_DIG_SCALE_MAX)
+		return -EINVAL;
+
+	pm_runtime_get_sync(cs40l2x->dev);
+	mutex_lock(&cs40l2x->lock);
+
+	ret = cs40l2x_cp_dig_scale_set(cs40l2x, dig_scale);
+	if (ret)
+		goto err_mutex;
+
+	ret = 0;
+
+err_mutex:
+	mutex_unlock(&cs40l2x->lock);
+	pm_runtime_mark_last_busy(cs40l2x->dev);
+	pm_runtime_put_autosuspend(cs40l2x->dev);
+	
+	return ret;
+}
+
+static void set_mode(bool long_vib) {
+	struct cs40l2x_private *cs40l2x = g_cs40l2x;
+	unsigned int index = long_vib?0:2;
+	int ret;
+
+	pm_runtime_get_sync(cs40l2x->dev);
+	mutex_lock(&cs40l2x->lock);
+
+	ret = cs40l2x_cp_trigger_index_impl(cs40l2x, index);
+	pr_info("%s %d\n",__func__,index);
+
+	mutex_unlock(&cs40l2x->lock);
+	pm_runtime_mark_last_busy(cs40l2x->dev);
+	pm_runtime_put_autosuspend(cs40l2x->dev);
+}
+
+
+static void uci_call_handler(char* event, int num_param[], char* str_param) {
+        pr_info("%s vibrate event %s %d %s\n",__func__,event,num_param[0],str_param);
+        if (g_led_cdev && g_cs40l2x) {
+    	    if (num_param[0]< 100) {
+    		    set_mode(false);
+    	    } else {
+    		    set_mode(true);
+    	    }
+            if (!strcmp(event,"vibrate_boosted")) {
+        	set_scale(48);
+    		cs40l2x_vibe_brightness_set(g_led_cdev, num_param[0]);
+	    } else
+    	    if (!strcmp(event,"vibrate")) {
+        	set_scale(48);
+    		cs40l2x_vibe_brightness_set(g_led_cdev, num_param[0]);
+            } else
+	    if (!strcmp(event,"vibrate_2")) {
+		int scale = 90-num_param[1];
+
+	        pr_info("%s vibrate_2 %d %d %s\n",__func__,num_param[0],num_param[1],str_param);
+
+		if (scale < 1) scale = 1;
+		set_scale(scale);
+		
+    		cs40l2x_vibe_brightness_set(g_led_cdev, num_param[0]);
+    	    };
+    	}
+}
+#endif
+
 #endif /* CONFIG_ANDROID_TIMED_OUTPUT */
 
 static int cs40l2x_coeff_init(struct cs40l2x_private *cs40l2x)
@@ -11726,6 +11945,11 @@ static int cs40l2x_i2c_probe(struct i2c_client *i2c_client,
 		dev_err(dev, "Cannot register codec component\n");
 		goto err;
 	}
+
+#ifdef CONFIG_UCI
+	g_cs40l2x = cs40l2x;
+        uci_add_call_handler(uci_call_handler);
+#endif
 
 	return 0;
 err:

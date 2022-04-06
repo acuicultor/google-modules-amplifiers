@@ -8473,7 +8473,7 @@ err_mutex:
 static void set_mode(bool long_vib) {
 	struct cs40l2x_private *cs40l2x = g_cs40l2x;
 	unsigned int index = long_vib?0:2;
-	int ret;
+	int __maybe_unused ret;
 
 	pm_runtime_get_sync(cs40l2x->dev);
 	mutex_lock(&cs40l2x->lock);

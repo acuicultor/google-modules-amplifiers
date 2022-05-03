@@ -270,7 +270,7 @@ static int cs35l41_dsp_load_ev(struct snd_soc_dapm_widget *w,
 		snd_soc_component_get_drvdata(component);
 	enum cs35l41_cspl_mboxcmd mboxcmd = CSPL_MBOX_CMD_NONE;
 	enum cs35l41_cspl_mboxstate fw_status = CSPL_MBOX_STS_RUNNING;
-	int ret = 0;
+	int __maybe_unused ret = 0;
 
 	dev_info(cs35l41->dev, "%s: event: %d halo_booted: %d\n",
 				__func__, event, cs35l41->halo_booted);
@@ -503,7 +503,7 @@ static int cs35l41_ccm_reset_put(struct snd_kcontrol *kcontrol,
 	struct cs35l41_private *cs35l41 =
 		snd_soc_component_get_drvdata(component);
 	unsigned int val = 0;
-	int ret = 0;
+	int __maybe_unused ret = 0;
 
 	val = ucontrol->value.integer.value[0];
 

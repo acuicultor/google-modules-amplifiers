@@ -410,7 +410,7 @@ static void uci_prepare(struct drv2624_data *drv2624, int boost, int length) {
 	// seq: 2 0
 	{
 	        struct drv2624_waveform_sequencer sequencer;
-	        int n;
+	        int __maybe_unused n;
 		static char buf[] = "2 0";
 		static char buf1[] = "1 12 1 12 1 12 1 12 1 12";
 		static char buf2[] = "1 12 1 12 1 12 1 12 1 12 1 12 1 12 1 12";
